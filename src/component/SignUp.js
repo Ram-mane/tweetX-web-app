@@ -3,7 +3,7 @@ import { Card, CardBody, CardTitle, Form, FormGroup, Input, Button, Col, Row, Fo
 import Base1 from './Base1';
 import { useNavigate } from 'react-router-dom';
 import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
-import { auth } from '../firebase';
+import { auth,db } from '../firebase';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -48,10 +48,17 @@ const CreateAccount = () => {
       const resp = await createUserWithEmailAndPassword(auth, formData.email, formData.password);
 
       const user = resp.user;
+
       console.log(user)
+
       await updateProfile(user, {
         displayName: formData.name,
       });
+
+      // adding user details to the firestore
+
+      // await db.collection('users').doc
+
       toast.success('Account created successfully !')
       setTimeout(() => {
         // Navigate to the login page

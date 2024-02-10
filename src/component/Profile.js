@@ -8,10 +8,11 @@ import Posts from './Posts';
 import Followers from './Followers';
 import Following from './Following';
 import {useNavigate} from 'react-router-dom'
+import { useAuth } from './AuthContext';
 
 const Profile = () => {
 
-    const [showPosts, setShowPosts] = useState(false);
+    const [showPosts, setShowPosts] = useState(true);
     const [showFollowers, setShowFollowers] = useState(false);
     const [showFollowing, setShowFollowing] = useState(false);            
 
@@ -34,6 +35,8 @@ const Profile = () => {
         setShowFollowing(true);
       };
 
+      const { user } = useAuth();
+      console.log(user);
     
   return (
     <Base2>
@@ -47,7 +50,9 @@ const Profile = () => {
           {/* Name */}
           <Col md={{ size: 7, offset: 2 }}>
             <Typography variant="h4" className='mt-5 ml-2' gutterBottom>
-              Arjun Reddy
+
+              {user ? user.displayName : 'Arjun Reddy'}
+
               {/* Post, Followers, Following Section */}
               <Row className="align-items-center mt-2">
                 <Col xs="auto" className="d-flex flex-column align-items-center">
@@ -101,7 +106,7 @@ const Profile = () => {
         </Row>
         </Container>
         {/* Conditionally render Posts component */}
-        {showPosts && <Posts />}
+        {showPosts && <Posts user={user}  />}
         {showFollowers && <Followers />}
         {showFollowing && <Following />}
         </Card>

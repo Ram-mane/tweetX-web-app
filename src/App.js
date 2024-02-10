@@ -12,6 +12,7 @@ import Followers from './component/Followers';
 import Following from './component/Following';
 import { useEffect, useState } from 'react';
 import { auth } from './firebase';
+import { AuthProvider } from './component/AuthContext';
 
 
 function App() {
@@ -27,6 +28,7 @@ function App() {
     });
   },[]);
   return (
+    <AuthProvider>
     <BrowserRouter>      
     <Routes>
      <Route path='/' element={<SignUp/>}/>
@@ -41,6 +43,7 @@ function App() {
 
     </Routes>
     </BrowserRouter>
+    </AuthProvider>
  
     
    );
