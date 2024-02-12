@@ -7,11 +7,14 @@ import { auth } from '../firebase';
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
+  const [currentUser, setCurrentUser] = useState(null);
+  const[username, setUserName] = useState();
 
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged((authUser) => {
-      setUser(authUser);
+      setCurrentUser(authUser);
+      setUserName(authUser.displayName);
+      
       console.log(authUser)
     });
 
@@ -20,7 +23,7 @@ export const AuthProvider = ({ children }) => {
     };
   }, []);
 
-  return <AuthContext.Provider value={{ user }}>{children}</AuthContext.Provider>;
+  return <AuthContext.Provider value={{ currentUser }}>{children}</AuthContext.Provider>;
 };
 
 export const useAuth = () => {

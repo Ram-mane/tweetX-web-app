@@ -6,6 +6,7 @@ import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
 import { auth,db } from '../firebase';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { addDoc, collection } from 'firebase/firestore';
 
 const CreateAccount = () => {
   const [formData, setFormData] = useState({
@@ -57,13 +58,35 @@ const CreateAccount = () => {
 
       // adding user details to the firestore
 
+      const userRef = collection(db,'users');
+      await addDoc(userRef,{
+        username:formData.name,
+        eamil:formData.email,
+        password: formData.password,
+        userId: user.uid,
+        timeStamp: new Date(),
+        followers: [],
+        following :[],
+        
+        tweets:[],
+      });
+
+
+
       // await db.collection('users').doc
 
-      toast.success('Account created successfully !')
+      toast.success('Account created successfully !');
+      setFormData({
+        name: '',
+        email: '',
+        password: '',
+        confirmPassword: '',
+      });
       setTimeout(() => {
         // Navigate to the login page
         navigate('/login');
       }, 3500);
+
     } catch (err) {
       console.error('Error:', err);
       toast.error(err.message);

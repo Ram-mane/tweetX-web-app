@@ -1,31 +1,24 @@
 import React, { useState, useEffect } from 'react';
-import { Button, Card, CardContent, TextField, Typography, Container } from '@mui/material';
+import { Button, Card, CardContent, TextField, Typography, Container,Avatar } from '@mui/material';
 import Base2 from './Base2';
+import {format} from 'date-fns';
 import { useAuth } from './AuthContext';
-import { db, myCollection, addDoc, Timestamp } from '../firebase'; // Assuming you have a file for Firebase configuration
-import { collection, doc, setDoc } from "firebase/firestore"; 
+import { db,  addDoc, Timestamp } from '../firebase'; // Assuming you have a file for Firebase configuration
+import { collection,  doc,  onSnapshot, query, setDoc, updateDoc, where,arrayUnion } from "firebase/firestore"; 
+import { updateUserData } from '../userOpHelper/updateUser';
 
 const Feed = () => {
   const [tweetText, setTweetText] = useState('');
   const [tweets, setTweets] = useState([]);
-  
-  const { user } = useAuth();
+  const { currentUser } = useAuth();
 
   const handleTweetSubmit = async () => {
     try {
-      console.log('User object:', user);
-  
-      // Check if the user object exists and has a 'uid' property
-      if (user && user.uid) {
-        const tweetsRef = collection(db, "tweets");
-  
-        await addDoc(tweetsRef, {
-          tweet: tweetText,
-          timestamp: Timestamp.fromDate(new Date()),
-          userId: user.uid,
-          username: user.displayName,
+      if (currentUser && currentUser.uid) {
+        const tweetDocRef = await addTweetToFirestore();
+        updateUserData(currentUser.uid, {
+          tweets: arrayUnion({ tweetId: tweetDocRef.id, tweetText }),
         });
-  
         setTweetText('');
       } else {
         console.error('User object is null or missing uid property');
@@ -35,15 +28,34 @@ const Feed = () => {
     }
   };
 
-//   useEffect(() => {
-//     const unsubscribe = db.collection('tweets').onSnapshot((snapshot) => {
-//       setTweets(snapshot.docs.map((doc) => ({ id: doc.id, data: doc.data() })));
-//     });
+  const addTweetToFirestore = async () => {
+    const tweetsRef = collection(db, 'tweets');
+    return await addDoc(tweetsRef, {
+      tweet: tweetText,
+      timestamp: Timestamp.fromDate(new Date()),
+      userId: currentUser.uid,
+      username: currentUser.displayName,
+    });
+  };
 
-//     return () => {
-//       unsubscribe();
-//     };
-//   }, []);
+  useEffect(() => {
+    const tweetRef = collection(db, 'tweets');
+    if (currentUser) {
+      const usersTweetQuery = query(tweetRef, where('userId', '==', currentUser.uid));
+      const unsubscribe = onSnapshot(usersTweetQuery, (snapshot) => {
+        const updatedTweets = snapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+        setTweets(updatedTweets);
+      });
+      return () => {
+        unsubscribe();
+      };
+    } else {
+      console.error('Error! currentUser not found');
+    }
+  }, [currentUser]);
 
   return (
     <Base2>
@@ -65,8 +77,16 @@ const Feed = () => {
           {tweets.map((tweet) => (
             <Card key={tweet.id} style={{ marginBottom: '10px' }}>
               <CardContent>
-                <Typography variant="body1">{tweet.data.tweet}</Typography>
-                {/* You can add more details like timestamp, user info, etc. as needed */}
+                <div style={{ display: 'flex', alignItems: 'center', marginBottom: '10px' }}>
+                  <Avatar alt="User Avatar" src={tweet.userProfileImageUrl} />
+                  <Typography variant="subtitle1" style={{ marginLeft: '10px' }}>
+                    {currentUser.displayName}
+                  </Typography>
+                </div>
+                <Typography variant="body1">{tweet.tweet}</Typography>
+                <Typography variant="caption" color="textSecondary" style={{ marginTop: '10px' }}>
+                  {format(tweet.timestamp.toDate(), 'MMMM dd, yyyy hh:mm a')}
+                </Typography>
               </CardContent>
             </Card>
           ))}

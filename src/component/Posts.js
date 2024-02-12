@@ -13,7 +13,7 @@ const Posts = ({ user }) => {
   
 
   useEffect(() => {
-    console.log('Effect triggered');
+    console.log('login succesful !');
     if (user) { // Check if user is defined
       // Reference to the 'tweets' collection in Firestore
       const tweetsRef = collection(db, 'tweets');
