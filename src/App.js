@@ -24,9 +24,9 @@ function App() {
 
 
     <Routes>
-     <Route path='/'  isActive={() => isActive('/')} element={<SignUp/>}/>
+     <Route path='/'  element={<SignUp/>}/>
      <Route path='/login' element={<Login/>}/>
-     <Route path='/profile'  isActive={() => isActive('/profile')} element={<Profile/>}/>
+     <Route path='/profile' element={<Profile/>}/>
      <Route path='/feed' element={<Feed/>}/>
      <Route path='/users' element={<Users/>}/>
      <Route path='/posts' element={<Posts/>}/>
