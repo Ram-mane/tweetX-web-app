@@ -10,7 +10,7 @@ import { useAuth } from './AuthContext';
 const Posts = ({ user }) => {
   const [tweets, setTweets] = useState([]);
 
-  
+  // console.log("Post users"+JSON.stringify(user,null,2));
 
   useEffect(() => {
     console.log('login succesful !');

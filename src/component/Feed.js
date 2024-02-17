@@ -1,15 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { Button, Card, CardContent, TextField, Typography, Container,Avatar } from '@mui/material';
+import { Button, Card, CardContent, TextField, Typography, Container, Avatar, CircularProgress } from '@mui/material';
 import Base2 from './Base2';
-import {format} from 'date-fns';
+import { formatDistanceToNow} from 'date-fns';
 import { useAuth } from './AuthContext';
-import { db,  addDoc, Timestamp } from '../firebase'; // Assuming you have a file for Firebase configuration
-import { collection,  doc,  onSnapshot, query, setDoc, updateDoc, where,arrayUnion } from "firebase/firestore"; 
+import { db, addDoc, Timestamp } from '../firebase';
+import { collection, onSnapshot, query, arrayUnion, where, orderBy } from 'firebase/firestore';
 import { updateUserData } from '../userOpHelper/updateUser';
+import { getUserInfo } from '../userOpHelper/getUserInfo';
 
 const Feed = () => {
   const [tweetText, setTweetText] = useState('');
   const [tweets, setTweets] = useState([]);
+  const [loading, setLoading] = useState(true);
   const { currentUser } = useAuth();
 
   const handleTweetSubmit = async () => {
@@ -39,27 +41,39 @@ const Feed = () => {
   };
 
   useEffect(() => {
-    const tweetRef = collection(db, 'tweets');
-    if (currentUser) {
-      const usersTweetQuery = query(tweetRef, where('userId', '==', currentUser.uid));
-      const unsubscribe = onSnapshot(usersTweetQuery, (snapshot) => {
-        const updatedTweets = snapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        }));
-        setTweets(updatedTweets);
-      });
-      return () => {
-        unsubscribe();
-      };
-    } else {
-      console.error('Error! currentUser not found');
-    }
+    const fetchTweets = async () => {
+      try {
+        if (currentUser && currentUser.uid) {
+          const tweetRef = collection(db, 'tweets');
+          const usersTweetQuery = query(tweetRef,orderBy('timestamp', 'desc'));
+          const unsubscribe = onSnapshot(usersTweetQuery, (snapshot) => {
+            const updatedTweets = snapshot.docs.map((doc) => ({
+              id: doc.id,
+              ...doc.data(),
+            }));
+            setTweets(updatedTweets);
+            setLoading(false);
+          });
+          return () => {
+            unsubscribe();
+          };
+        } else {
+          console.error('Error! currentUser not found');
+          setLoading(false);
+        }
+      } catch (error) {
+        console.error('Error fetching tweets:', error);
+        setLoading(false);
+      }
+    };
+
+    setLoading(true);
+    fetchTweets();
   }, [currentUser]);
 
   return (
     <Base2>
-      <Container>
+      <Container className='col-4'>
         <TextField
           label="Write your tweet (up to 3 sentences)"
           multiline
@@ -74,22 +88,24 @@ const Feed = () => {
         </Button>
 
         <div style={{ marginTop: '20px' }}>
-          {tweets.map((tweet) => (
-            <Card key={tweet.id} style={{ marginBottom: '10px' }}>
-              <CardContent>
-                <div style={{ display: 'flex', alignItems: 'center', marginBottom: '10px' }}>
-                  <Avatar alt="User Avatar" src={tweet.userProfileImageUrl} />
-                  <Typography variant="subtitle1" style={{ marginLeft: '10px' }}>
-                    {currentUser.displayName}
+          {loading && <CircularProgress style={{ margin: '20px auto', display: 'block' }} />}
+          {!loading &&
+            tweets.map((tweet) => (
+              <Card key={tweet.id} style={{ marginBottom: '10px' }}>
+                <CardContent>
+                  <div style={{ display: 'flex', alignItems: 'center', marginBottom: '10px' }}>
+                    <Avatar alt="User Avatar" src={tweet.userProfileImageUrl} />
+                    <Typography variant="h5" style={{ marginLeft: '10px' }}>
+                      {tweet.username}
+                    </Typography>
+                  </div>
+                  <Typography variant="body1">{tweet.tweet}</Typography>
+                  <Typography variant="caption" color="textSecondary" style={{ marginTop: '10px' }}>
+                     {formatDistanceToNow(tweet.timestamp.toDate(), { addSuffix: true })}
                   </Typography>
-                </div>
-                <Typography variant="body1">{tweet.tweet}</Typography>
-                <Typography variant="caption" color="textSecondary" style={{ marginTop: '10px' }}>
-                  {format(tweet.timestamp.toDate(), 'MMMM dd, yyyy hh:mm a')}
-                </Typography>
-              </CardContent>
-            </Card>
-          ))}
+                </CardContent>
+              </Card>
+            ))}
         </div>
       </Container>
     </Base2>

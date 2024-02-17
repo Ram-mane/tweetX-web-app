@@ -1,7 +1,7 @@
 import logo from './logo.svg';
 import './App.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import { BrowserRouter,Routes,Route  } from 'react-router-dom';
+import { BrowserRouter,Routes,Route,nav, Nav,NavLink  } from 'react-router-dom';
 import SignUp from './component/SignUp';
 import Login from './component/Login';
 import Profile from './component/Profile';
@@ -20,11 +20,13 @@ function App() {
   
   return (
     <AuthProvider>
-    <BrowserRouter>      
+    <BrowserRouter> 
+
+
     <Routes>
-     <Route path='/' element={<SignUp/>}/>
+     <Route path='/'  isActive={() => isActive('/')} element={<SignUp/>}/>
      <Route path='/login' element={<Login/>}/>
-     <Route path='/profile' element={<Profile/>}/>
+     <Route path='/profile'  isActive={() => isActive('/profile')} element={<Profile/>}/>
      <Route path='/feed' element={<Feed/>}/>
      <Route path='/users' element={<Users/>}/>
      <Route path='/posts' element={<Posts/>}/>

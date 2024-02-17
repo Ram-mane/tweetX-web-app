@@ -2,7 +2,6 @@
 import { collection, query, where, getDocs, updateDoc, doc } from 'firebase/firestore';
 import { db } from '../firebase';
 
-
 export const updateUserData = async (userId, newData) => {
   try {
     // Query for the document with matching userId
@@ -16,10 +15,15 @@ export const updateUserData = async (userId, newData) => {
       // Assuming there is only one matching document
       const userDoc = querySnapshot.docs[0];
 
-      // Update the document with new data
-      await updateDoc(doc(db, 'users', userDoc.id), newData);
+      // Check if newData is an object and not undefined
+      if (typeof newData === 'object' && newData !== null) {
+        // Update the document with new data
+        await updateDoc(doc(db, 'users', userDoc.id), newData);
 
-      console.log('User data updated successfully');
+        console.log('User data updated successfully');
+      } else {
+        console.log('Invalid data provided for update');
+      }
     } else {
       console.log('No matching document found for userId:', userId);
     }
