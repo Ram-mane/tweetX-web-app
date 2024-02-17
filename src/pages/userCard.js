@@ -1,6 +1,28 @@
 import { Card, CardContent, Avatar, Typography, Button } from '@mui/material';
+import { collection, query, where, getDocs } from 'firebase/firestore';
+import { useAuth } from '../component/AuthContext';
+import { useState ,useEffect} from 'react';
+import { db } from '../firebase';
+ // Update with your actual path to useAuth
 
 const UserCard = ({ user, handleFollow }) => {
+  const { currentUser } = useAuth();
+  const [isFollowing, setIsFollowing] = useState(false);
+
+  useEffect(() => {
+    const checkFollowing = async () => {
+      const userDocRefQuery = query(collection(db, 'users'), where('userId', '==', currentUser.uid));
+      const userDocSnapshot = await getDocs(userDocRefQuery);
+
+      if (!userDocSnapshot.empty) {
+        const currentUserData = userDocSnapshot.docs[0].data();
+        setIsFollowing(currentUserData.following.some((following) => following.userID === user.userId));
+      }
+    };
+
+    checkFollowing();
+  }, [currentUser.uid, user.userId,handleFollow]);
+
   return (
     <Card className="container-fluid mt-4">
       <CardContent className="d-flex flex-column flex-md-row justify-content-between ">
@@ -16,7 +38,7 @@ const UserCard = ({ user, handleFollow }) => {
         </div>
         <div className="mt-3  mt-md-0">
           <Button onClick={() => handleFollow(user.userId)} variant="contained" color="primary">
-            Follow
+            {isFollowing ? 'Unfollow' : 'Follow'}
           </Button>
         </div>
       </CardContent>

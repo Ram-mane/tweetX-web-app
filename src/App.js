@@ -13,6 +13,8 @@ import Following from './component/Following';
 import { useEffect, useState } from 'react';
 import { auth } from './firebase';
 import { AuthProvider } from './component/AuthContext';
+import { Toast } from 'reactstrap';
+import { ToastContainer } from 'react-toastify';
 
 
 function App() {
@@ -20,9 +22,9 @@ function App() {
   
   return (
     <AuthProvider>
+      
+    <ToastContainer/>    
     <BrowserRouter> 
-
-
     <Routes>
      <Route path='/'  element={<SignUp/>}/>
       <Route path='/signup' element={<SignUp/>}/>
@@ -37,6 +39,7 @@ function App() {
 
     </Routes>
     </BrowserRouter>
+    
     </AuthProvider>
  
     

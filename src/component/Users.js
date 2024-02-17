@@ -1,16 +1,18 @@
 import React, { useEffect, useState } from 'react';
 import Base2 from './Base2';
-import { arrayUnion, collection, onSnapshot } from 'firebase/firestore';
+import { arrayRemove, arrayUnion, collection, onSnapshot } from 'firebase/firestore';
 import { db } from '../firebase';
 import { Card, CircularProgress } from '@mui/material';
 import UserCard from '../pages/userCard'; // Import the UserCard component
 import { useAuth } from './AuthContext';
 import { updateUserData } from '../userOpHelper/updateUser';
 import { Col } from 'reactstrap';
+import { set } from 'date-fns';
 
 const Users = () => {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [isFollowing,setIsFollowing]=useState(false);
   const { currentUser } = useAuth();
 
   useEffect(() => {
@@ -32,13 +34,25 @@ const Users = () => {
 
   const handleFollow = (clickedUsersId) => {
     if (currentUser) {
-      updateUserData(currentUser.uid, {
-        following: arrayUnion({ userID: clickedUsersId }),
-      });
+      if (!isFollowing) {
+        updateUserData(currentUser.uid, {
+          following: arrayUnion({ userID: clickedUsersId }),
+        });
 
-      updateUserData(clickedUsersId, {
-        followers: arrayUnion({userId: currentUser.uid}),
-      });
+        updateUserData(clickedUsersId, {
+          followers: arrayUnion({ userID: currentUser.uid }),
+        });
+        setIsFollowing(true);
+      } else{
+        updateUserData(currentUser.uid, {
+          following: arrayRemove({ userID: clickedUsersId }),
+        });
+        updateUserData(clickedUsersId, {
+          followers: arrayRemove({ userID: currentUser.uid }),
+        });
+        setIsFollowing(false);
+        
+      }
     } else {
       console.log('user not found');
     }
@@ -57,7 +71,7 @@ const Users = () => {
             {!loading && (
               <div >
                 {users.map((user) => (
-                  <UserCard key={user.id} user={user} handleFollow={handleFollow} />
+                  <UserCard key={user.id} user={user} handleFollow={handleFollow}  isFollowing ={isFollowing}/>
                 ))}
               </div>
             )}

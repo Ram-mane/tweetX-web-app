@@ -6,28 +6,41 @@ import { useAuth } from './AuthContext';
 import { db, addDoc, Timestamp } from '../firebase';
 import { collection, onSnapshot, query, arrayUnion, where, orderBy } from 'firebase/firestore';
 import { updateUserData } from '../userOpHelper/updateUser';
-import { getUserInfo } from '../userOpHelper/getUserInfo';
+import { getUserData } from '../userOpHelper/getUserInfo';
+import { ToastContainer ,toast } from 'react-toastify';
 
 const Feed = () => {
   const [tweetText, setTweetText] = useState('');
   const [tweets, setTweets] = useState([]);
   const [loading, setLoading] = useState(true);
   const { currentUser } = useAuth();
+  const [following,setFollowing]=useState([]);
+  
+
+  console.log('following in aa:',following)
+  const followingUserIds = following.map((user) => user.userID); // Extract user IDs
+  console.log('followingUserIds:', followingUserIds);
+
 
   const handleTweetSubmit = async () => {
-    try {
-      if (currentUser && currentUser.uid) {
-        const tweetDocRef = await addTweetToFirestore();
-        updateUserData(currentUser.uid, {
-          tweets: arrayUnion({ tweetId: tweetDocRef.id, tweetText }),
-        });
-        setTweetText('');
-      } else {
-        console.error('User object is null or missing uid property');
+    if (tweetText.length > 0 && tweetText.length <= 800) {
+      try {
+        if (currentUser && currentUser.uid) {
+          const tweetDocRef = await addTweetToFirestore();
+          updateUserData(currentUser.uid, {
+            tweets: arrayUnion({ tweetId: tweetDocRef.id, tweetText }),
+          });
+          setTweetText('');
+        } else {
+          console.error('User object is null or missing uid property');
+        }
+      } catch (error) {
+        console.error('Error submitting tweet:', error);
       }
-    } catch (error) {
-      console.error('Error submitting tweet:', error);
-    }
+    } else {
+      toast.error('Tweet must be between 1 to 500 charecters');
+      console.error('Tweet must be between 1 and 500 characters');
+    };
   };
   
 
@@ -45,19 +58,23 @@ const Feed = () => {
     const fetchTweets = async () => {
       try {
         if (currentUser && currentUser.uid) {
-          const tweetRef = collection(db, 'tweets');
-          const usersTweetQuery = query(tweetRef,orderBy('timestamp', 'desc'));
-          const unsubscribe = onSnapshot(usersTweetQuery, (snapshot) => {
-            const updatedTweets = snapshot.docs.map((doc) => ({
-              id: doc.id,
-              ...doc.data(),
-            }));
-            setTweets(updatedTweets);
-            setLoading(false);
-          });
-          return () => {
-            unsubscribe();
-          };
+          if(followingUserIds.length>0){
+            const tweetsQuery = query(
+              collection(db, 'tweets'),
+              where('userId', 'in', followingUserIds),
+              orderBy('timestamp', 'desc')
+            );
+            const unsubscribe = onSnapshot(tweetsQuery, (snapshot) => {
+              const tweetsData = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+              setTweets(tweetsData);
+              setLoading(false);
+            });
+            return () => {
+              unsubscribe();
+            };
+          }
+
+        
         } else {
           console.error('Error! currentUser not found');
           setLoading(false);
@@ -67,6 +84,18 @@ const Feed = () => {
         setLoading(false);
       }
     };
+    const fetchFollowing = async () => {
+      try {
+        if (currentUser && currentUser.uid) {
+          const following = await getUserData(currentUser.uid, 'following');
+          setFollowing(following);
+          console.log('following in', following);
+        }
+      } catch (error) {
+        console.error('Error fetching following:', error);
+      }
+    };
+    fetchFollowing();
 
     setLoading(true);
     fetchTweets();
@@ -81,11 +110,12 @@ const Feed = () => {
           rows={3}
           fullWidth
           value={tweetText}
+          required
           onChange={(e) => setTweetText(e.target.value)}
           variant="outlined"
         />
         <Button variant="contained" color="primary" onClick={handleTweetSubmit} style={{ marginTop: '10px' }}>
-          Tweet
+          {tweetText.length > 0 && tweetText.length <= 800 ? 'Tweet' : 'write tweet'}
         </Button>
 
         <div style={{ marginTop: '20px' }}>

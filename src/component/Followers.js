@@ -9,6 +9,7 @@ import { updateUserData } from '../userOpHelper/updateUser';
 
 const Followers = () => {
   const [users, setUsers] = useState([]);
+  const [currtUser, setCurrtUser] = useState(null);
   
   const { currentUser } = useAuth();
 //   console.log('Following user:', JSON.stringify(currentUser, null, 2));
@@ -22,6 +23,7 @@ useEffect(() => {
       const unsubscribe = onSnapshot(userQuery, async (snapshot) => {
         if (!snapshot.empty) {
           const userData = snapshot.docs[0].data();
+          setCurrtUser(userData);
           const followersUserId = userData.followers || [];
   
           console.log("following users"+JSON.stringify(userData, null, 2))
@@ -60,7 +62,7 @@ useEffect(() => {
     }
   }, [currentUser]);
   
-  
+  let currUserData = currtUser;
 
   const handleFollow = (clickedUsersId) => {
     if (currentUser) {
