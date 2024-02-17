@@ -29,6 +29,7 @@ const Feed = () => {
       console.error('Error submitting tweet:', error);
     }
   };
+  
 
   const addTweetToFirestore = async () => {
     const tweetsRef = collection(db, 'tweets');

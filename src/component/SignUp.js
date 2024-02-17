@@ -93,12 +93,16 @@ const CreateAccount = () => {
     }
   };
 
+  const handleLogin = () => {
+    navigate('/login');
+  };
+
   return (
     <Base1>
       <Col md={{ size: 8, offset: 1 }}>
         <Row>
           <Col md={3} className="offset-md-1 mt-2" style={{ marginLeft: '5px', padding: '10px' }}>
-            <Button color="transparent" size="lg" className="btn border-dark px-5 rounded-15">
+            <Button color="transparent" size="lg" className="btn border-dark px-5 rounded-15" onClick={handleLogin}>
               Login
             </Button>
           </Col>

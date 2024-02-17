@@ -63,6 +63,7 @@ const Login = () => {
               color="transparent"
               size="lg"
               className="btn border-dark px-5 rounded-15"
+              onClick={() => navigate('/signup')}
             >
               Create Account
             </Button>
@@ -103,7 +104,7 @@ const Login = () => {
                     />
                   </FormGroup>
 
-                  <Button type="submit" className="btn-ef476f float-end" style={{ backgroundColor: '#ef476f' }}>
+                  <Button  type="submit" className="btn-ef476f float-end" style={{ backgroundColor: '#ef476f' }}>
                     Login
                   </Button>
                 </Form>
