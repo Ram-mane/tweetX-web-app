@@ -14,12 +14,8 @@ const Feed = () => {
   const [tweets, setTweets] = useState([]);
   const [loading, setLoading] = useState(true);
   const { currentUser } = useAuth();
-  const [following,setFollowing]=useState([]);
   
 
-  console.log('following in aa:',following)
-  const followingUserIds = following.map((user) => user.userID); // Extract user IDs
-  console.log('followingUserIds:', followingUserIds);
 
 
   const handleTweetSubmit = async () => {
@@ -58,10 +54,9 @@ const Feed = () => {
     const fetchTweets = async () => {
       try {
         if (currentUser && currentUser.uid) {
-          if(followingUserIds.length>0){
+          
             const tweetsQuery = query(
               collection(db, 'tweets'),
-              where('userId', 'in', followingUserIds),
               orderBy('timestamp', 'desc')
             );
             const unsubscribe = onSnapshot(tweetsQuery, (snapshot) => {
@@ -72,7 +67,7 @@ const Feed = () => {
             return () => {
               unsubscribe();
             };
-          }
+          
 
         
         } else {
@@ -84,18 +79,7 @@ const Feed = () => {
         setLoading(false);
       }
     };
-    const fetchFollowing = async () => {
-      try {
-        if (currentUser && currentUser.uid) {
-          const following = await getUserData(currentUser.uid, 'following');
-          setFollowing(following);
-          console.log('following in', following);
-        }
-      } catch (error) {
-        console.error('Error fetching following:', error);
-      }
-    };
-    fetchFollowing();
+    
 
     setLoading(true);
     fetchTweets();
