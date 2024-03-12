@@ -23,7 +23,7 @@ useEffect(() => {
 
       const unsubscribe = onSnapshot(currUserQuery, async (snapshot) => {
         try {
-          const currUserData = snapshot.docs[0].data();
+          const currUserData = snapshot.docs[0]?.data();
           const followingUsersIds = currUserData.following || [];
 
           const followingDetails = await Promise.all(
